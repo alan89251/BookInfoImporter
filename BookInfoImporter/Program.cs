@@ -156,7 +156,7 @@ namespace BookInfoImporter
                         writer.WriteLine("List of id of the records which were failed to insert to database:");
                         foreach (BookRepositoryFailedOperation e in bookRepositoryFailedOperation)
                         {
-                            writer.WriteLine(e.book.book_id);
+                            writer.WriteLine($"{e.book.book_id} - {e.message}");
                         }
                     }
                 }
