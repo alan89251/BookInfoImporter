@@ -10,7 +10,7 @@
 
 2. How to run
 
-    2.1 Run the create_table_books.sql to create the table in database
+    2.1 Run the script/create_table_books.sql to create the table in database
     
     2.2 Set the ConnectionString in appsettings.json
 
