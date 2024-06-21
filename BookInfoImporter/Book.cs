@@ -2,7 +2,7 @@
 {
     internal class Book
     {
-        public int bookID { get; set; } = 0;
+        public int book_id { get; set; } = 0;
         public string title { get; set; } = "";
         public string authors { get; set; } = "";
         public double average_rating { get; set; } = 0;

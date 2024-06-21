@@ -83,7 +83,7 @@ namespace BookInfoImporter
                 writer.WriteLine("bookID,title,authors,average_rating,isbn,isbn13,language_code,num_pages,ratings_count,text_reviews_count,publication_date,publisher");
                 foreach(Book book in top100MostRecentlyPublishedBooks)
                 {
-                    writer.WriteLine($"{book.bookID}," +
+                    writer.WriteLine($"{book.book_id}," +
                         $"{book.title}," +
                         $"{book.authors}," +
                         $"{book.average_rating}," +
@@ -120,7 +120,7 @@ namespace BookInfoImporter
                     writer.WriteLine("List of id of the records which were failed to insert to database:");
                     foreach (BookRepositoryFailedOperation e in bookRepositoryFailedOperation)
                     {
-                        writer.WriteLine(e.book.bookID);
+                        writer.WriteLine(e.book.book_id);
                     }
                 }
             }

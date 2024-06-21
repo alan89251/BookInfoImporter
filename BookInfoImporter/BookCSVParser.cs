@@ -40,7 +40,7 @@ namespace BookInfoImporter
 
                 string[] fields = line.Split(",");
                 Book book = new Book();
-                book.bookID = Convert.ToInt32(fields[0]);
+                book.book_id = Convert.ToInt32(fields[0]);
                 book.title = fields[1];
                 book.authors = fields[2];
                 book.average_rating = Convert.ToDouble(fields[3]);

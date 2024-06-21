@@ -15,8 +15,8 @@ namespace BookInfoImporter
 
         private DataTable CreateDataTable()
         {
-            DataTable dataTable = new DataTable("Books");
-            DataColumn bookID = new DataColumn("bookID", typeof(int));
+            DataTable dataTable = new DataTable("books");
+            DataColumn bookID = new DataColumn("book_id", typeof(int));
             dataTable.Columns.Add(bookID);
             dataTable.Columns.Add(new DataColumn("title", typeof(string)));
             dataTable.Columns.Add(new DataColumn("authors", typeof(string)));
@@ -46,7 +46,7 @@ namespace BookInfoImporter
                 try
                 {
                     DataRow row = dataTable.NewRow();
-                    row["bookID"] = book.bookID;
+                    row["book_id"] = book.book_id;
                     row["title"] = book.title;
                     row["authors"] = book.authors;
                     row["average_rating"] = book.average_rating;
@@ -62,7 +62,7 @@ namespace BookInfoImporter
                 }
                 catch (Exception e)
                 {
-                    failedInserts.Add(new BookRepositoryFailedOperation($"Failed to insert record {book.bookID}. Reason: {e.Message}", book));
+                    failedInserts.Add(new BookRepositoryFailedOperation($"Failed to insert record {book.book_id}. Reason: {e.Message}", book));
                 }
             }
         }
@@ -72,10 +72,10 @@ namespace BookInfoImporter
             string ids = "";
             foreach (Book book in books)
             {
-                ids += $"{book.bookID},";
+                ids += $"{book.book_id},";
             }
             ids = ids.TrimEnd(',');
-            string sql = $"SELECT bookID FROM Books WHERE bookID in ({ids});";
+            string sql = $"SELECT book_id FROM Books WHERE book_id in ({ids});";
             List<int> bookIds = new List<int>();
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -107,13 +107,13 @@ namespace BookInfoImporter
             List<Book> booksToInsert = new List<Book>();
             foreach (Book book in books)
             {
-                if (!idsAlreadyExistInDB.Contains(book.bookID))
+                if (!idsAlreadyExistInDB.Contains(book.book_id))
                 {
                     booksToInsert.Add(book);
                 }
                 else
                 {
-                    failedInserts.Add(new BookRepositoryFailedOperation($"{book.bookID} is dulplicate in the DB", book));
+                    failedInserts.Add(new BookRepositoryFailedOperation($"{book.book_id} is dulplicate in the DB", book));
                 }
             }
 
@@ -121,8 +121,8 @@ namespace BookInfoImporter
             {
                 DataTable dataTable = CreateDataTable();
                 InsertToDataTable(booksToInsert, dataTable, failedInserts);
-                bulkCopy.DestinationTableName = "Books";
-                bulkCopy.ColumnMappings.Add(nameof(Book.bookID), "bookID");
+                bulkCopy.DestinationTableName = "books";
+                bulkCopy.ColumnMappings.Add(nameof(Book.book_id), "book_id");
                 bulkCopy.ColumnMappings.Add(nameof(Book.title), "title");
                 bulkCopy.ColumnMappings.Add(nameof(Book.authors), "authors");
                 bulkCopy.ColumnMappings.Add(nameof(Book.average_rating), "average_rating");
@@ -153,7 +153,7 @@ namespace BookInfoImporter
                         while (reader.Read())
                         {
                             Book book = new Book();
-                            book.bookID = reader.GetInt32(0);
+                            book.book_id = reader.GetInt32(0);
                             book.title = reader.GetString(1);
                             book.authors = reader.GetString(2);
                             book.average_rating = reader.GetDouble(3);
