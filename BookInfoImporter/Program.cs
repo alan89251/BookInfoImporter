@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace BookInfoImporter
 {
@@ -53,85 +54,117 @@ namespace BookInfoImporter
             {
                 logger.LogInformation($"Start importing from {fileName}.");
                 using (StreamReader sr = new StreamReader(fileName))
-            {
-                BookParser bookCSVParser = new BookCSVParser(sr);
-                books = bookCSVParser.ParseAllBooks(invalidLines);
+                {
+                    BookParser bookCSVParser = new BookCSVParser(sr);
+                    books = bookCSVParser.ParseAllBooks(invalidLines);
+                }
+                logger.LogInformation($"Imported {books.Count} records.");
+                if (invalidLines.Count > 0)
+                    logger.LogError($"Skip {invalidLines.Count} invalid lines. Please check the report for details.");
             }
-            logger.LogInformation($"Imported {books.Count} records.");
-            if (invalidLines.Count > 0)
-                logger.LogError($"Skip {invalidLines.Count} invalid lines. Please check the report for details.");
-        }
             catch (Exception e)
             {
                 logger.LogError($"Error in reading {fileName}. Reason: {e.Message}");
                 Environment.Exit(1);
             }
-
+            
         }
 
         private static void InsertDB()
         {
-            logger.LogInformation("Start inserting to database.");
-            bookRepo.InsertAll(books, bookRepositoryFailedOperation);
-            logger.LogInformation($"Inserted {books.Count - bookRepositoryFailedOperation.Count} records to database.");
-            if (bookRepositoryFailedOperation.Count > 0)
-                logger.LogError($"Fail to insert {bookRepositoryFailedOperation.Count} records. Please check the report for details.");
+            try
+            {
+                logger.LogInformation("Start inserting to database.");
+                bookRepo.InsertAll(books, bookRepositoryFailedOperation);
+                logger.LogInformation($"Inserted {books.Count - bookRepositoryFailedOperation.Count} records to database.");
+                if (bookRepositoryFailedOperation.Count > 0)
+                    logger.LogError($"Fail to insert {bookRepositoryFailedOperation.Count} records. Please check the report for details.");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Error in inserting records to database. Reason: {e.Message}");
+                Environment.Exit(1);
+            }
         }
 
         private static void QueryTop100MostRecentlyPublishedBooksReport()
         {
-            logger.LogInformation("Start querying top 100 most recently published books.");
-            top100MostRecentlyPublishedBooks = bookRepo.QueryTop100MostRecentlyPublishedBooksReport();
-            logger.LogInformation("Finished querying top 100 most recently published books.");
+            try
+            {
+                logger.LogInformation("Start querying top 100 most recently published books.");
+                top100MostRecentlyPublishedBooks = bookRepo.QueryTop100MostRecentlyPublishedBooksReport();
+                logger.LogInformation("Finished querying top 100 most recently published books.");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Error in querying the top 100 most recently published books from database. Reason: {e.Message}");
+                Environment.Exit(1);
+            }
         }
 
         private static void GenTop100MostRecentlyPublishedBooksReport()
         {
-            using (StreamWriter writer = new StreamWriter(Top100MostRecentlyPublishedBooksReportName))
+            try
             {
-                writer.WriteLine("bookID,title,authors,average_rating,isbn,isbn13,language_code,num_pages,ratings_count,text_reviews_count,publication_date,publisher");
-                foreach(Book book in top100MostRecentlyPublishedBooks)
+                using (StreamWriter writer = new StreamWriter(Top100MostRecentlyPublishedBooksReportName))
                 {
-                    writer.WriteLine($"{book.book_id}," +
-                        $"{book.title}," +
-                        $"{book.authors}," +
-                        $"{book.average_rating}," +
-                        $"{book.isbn}," +
-                        $"{book.isbn13}," +
-                        $"{book.language_code}," +
-                        $"{book.num_pages}," +
-                        $"{book.ratings_count}," +
-                        $"{book.text_reviews_count}," +
-                        $"{book.publication_date.ToShortDateString()}," +
-                        $"{book.publisher}");
+                    writer.WriteLine("bookID,title,authors,average_rating,isbn,isbn13,language_code,num_pages,ratings_count,text_reviews_count,publication_date,publisher");
+                    foreach (Book book in top100MostRecentlyPublishedBooks)
+                    {
+                        writer.WriteLine($"{book.book_id}," +
+                            $"{book.title}," +
+                            $"{book.authors}," +
+                            $"{book.average_rating}," +
+                            $"{book.isbn}," +
+                            $"{book.isbn13}," +
+                            $"{book.language_code}," +
+                            $"{book.num_pages}," +
+                            $"{book.ratings_count}," +
+                            $"{book.text_reviews_count}," +
+                            $"{book.publication_date.ToShortDateString()}," +
+                            $"{book.publisher}");
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Error in generating the report of the top 100 most recently published books. Reason: {e.Message}");
+                Environment.Exit(1);
             }
         }
 
         private static void GenRecordsImportReport()
         {
-            using (StreamWriter writer = new StreamWriter(RecordsImportReportName))
+            try
             {
-                writer.WriteLine($"Inserted {books.Count - bookRepositoryFailedOperation.Count} records to database.");
-                writer.WriteLine($"Skip {invalidLines.Count} invalid lines from the CSV file.");
-                writer.WriteLine($"Failed to insert {bookRepositoryFailedOperation.Count} records.");
-                if (invalidLines.Count > 0)
+                using (StreamWriter writer = new StreamWriter(RecordsImportReportName))
                 {
-                    writer.WriteLine("List of the invalid lines:");
-                    foreach (string line in invalidLines)
+                    writer.WriteLine($"Inserted {books.Count - bookRepositoryFailedOperation.Count} records to database.");
+                    writer.WriteLine($"Skip {invalidLines.Count} invalid lines from the CSV file.");
+                    writer.WriteLine($"Failed to insert {bookRepositoryFailedOperation.Count} records.");
+                    if (invalidLines.Count > 0)
                     {
-                        writer.WriteLine(line);
-                        writer.WriteLine("-------------------------------------------------------------");
+                        writer.WriteLine("List of the invalid lines:");
+                        foreach (string line in invalidLines)
+                        {
+                            writer.WriteLine(line);
+                            writer.WriteLine("-------------------------------------------------------------");
+                        }
+                    }
+                    if (bookRepositoryFailedOperation.Count > 0)
+                    {
+                        writer.WriteLine("List of id of the records which were failed to insert to database:");
+                        foreach (BookRepositoryFailedOperation e in bookRepositoryFailedOperation)
+                        {
+                            writer.WriteLine(e.book.book_id);
+                        }
                     }
                 }
-                if (bookRepositoryFailedOperation.Count > 0)
-                {
-                    writer.WriteLine("List of id of the records which were failed to insert to database:");
-                    foreach (BookRepositoryFailedOperation e in bookRepositoryFailedOperation)
-                    {
-                        writer.WriteLine(e.book.book_id);
-                    }
-                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Error in generating the report of the book records import. Reason: {e.Message}");
+                Environment.Exit(1);
             }
         }
     }

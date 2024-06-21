@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BookInfoImporter": {
+      "commandName": "Project",
+      "commandLineArgs": "books.csv"
+    }
+  }
+}
