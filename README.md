@@ -34,7 +34,7 @@
 
     ```json
     {
-        "ConnectionString": "Server=localhost;Database=master;User Id=sa;Password=98uI832h8s;TrustServerCertificate=True",
+        "ConnectionString": "Server=localhost;Database=master;User Id=sa;Password=12345678;",
         "RecordsImportReportName": "RecordsImportReport.txt",
         "Top100MostRecentlyPublishedBooksReportName": "Top100MostRecentlyPublishedBooksReport.csv"
     }
