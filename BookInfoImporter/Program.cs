@@ -20,7 +20,7 @@ namespace BookInfoImporter
         public static void Main(string[] args)
         {
             Init();
-            ReadBooks();
+            ReadBooks(args[0]);
             InsertDB();
             GenRecordsImportReport();
             QueryTop100MostRecentlyPublishedBooksReport();
@@ -47,10 +47,12 @@ namespace BookInfoImporter
             bookRepo = new BookRepoImpSQLServer(connectionString);
         }
 
-        private static void ReadBooks()
+        private static void ReadBooks(string fileName)
         {
-            logger.LogInformation("Start importing from CSV.");
-            using (StreamReader sr = new StreamReader("books.csv"))
+            try
+            {
+                logger.LogInformation($"Start importing from {fileName}.");
+                using (StreamReader sr = new StreamReader(fileName))
             {
                 BookParser bookCSVParser = new BookCSVParser(sr);
                 books = bookCSVParser.ParseAllBooks(invalidLines);
@@ -58,6 +60,13 @@ namespace BookInfoImporter
             logger.LogInformation($"Imported {books.Count} records.");
             if (invalidLines.Count > 0)
                 logger.LogError($"Skip {invalidLines.Count} invalid lines. Please check the report for details.");
+        }
+            catch (Exception e)
+            {
+                logger.LogError($"Error in reading {fileName}. Reason: {e.Message}");
+                Environment.Exit(1);
+            }
+
         }
 
         private static void InsertDB()
